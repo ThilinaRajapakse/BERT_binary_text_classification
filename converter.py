@@ -3,17 +3,12 @@ If you are having trouble multiprocessing inside Notebooks, give this script a s
 '''
 
 import torch
+from tqdm import tqdm
+from pytorch_pretrained_bert import BertTokenizer
+
+
+from multiprocessing import Pool
 import pickle
-from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
-                              TensorDataset)
-from torch.nn import CrossEntropyLoss, MSELoss
-
-from tqdm import tqdm, trange
-import os
-from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM, BertForSequenceClassification
-from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
-
-from multiprocessing import Pool, cpu_count
 from tools import *
 import convert_examples_to_features
 
@@ -60,7 +55,7 @@ output_mode = OUTPUT_MODE
 # Load pre-trained model tokenizer (vocabulary)
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
 
-processor = ColaProcessor()
+processor = BinaryClassificationProcessor()
 train_examples = processor.get_train_examples(DATA_DIR)
 train_examples_len = len(train_examples)
 
@@ -77,5 +72,5 @@ if __name__ ==  '__main__':
     with Pool(process_count) as p:
         train_features = list(tqdm(p.imap(convert_examples_to_features.convert_example_to_feature, train_examples_for_processing), total=train_examples_len))
 
-with open("train_features', 'wb') as f:
-          pickle.dump(train_features, f)
+with open("train_features", 'wb') as f:
+    pickle.dump(train_features, f)
