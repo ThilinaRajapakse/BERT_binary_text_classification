@@ -7,7 +7,7 @@ from tqdm import tqdm
 from pytorch_pretrained_bert import BertTokenizer
 
 
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 import pickle
 from tools import *
 import convert_examples_to_features
@@ -65,12 +65,13 @@ num_labels = len(label_list)
 label_map = {label: i for i, label in enumerate(label_list)}
 train_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, output_mode) for example in train_examples]
 
-process_count = 1
-if __name__ ==  '__main__':
+process_count = cpu_count() - 2
+# Running time on Ryzen 7 2700x with these settings is about 1 hour
+if __name__ == '__main__':
     print(f'Preparing to convert {train_examples_len} examples..')
     print(f'Spawning {process_count} processes..')
     with Pool(process_count) as p:
         train_features = list(tqdm(p.imap(convert_examples_to_features.convert_example_to_feature, train_examples_for_processing), total=train_examples_len))
 
-with open("train_features", 'wb') as f:
+with open("train_features.pkl", 'wb') as f:
     pickle.dump(train_features, f)
